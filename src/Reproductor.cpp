@@ -59,9 +59,14 @@ void dibujarLinea(GIFDRAW* pDraw) {
     uint8_t*  origen = pDraw->pPixels;
     uint16_t* paleta = pDraw->pPalette;
 
-    // Método 2 = restaurar el fondo: lo transparente pasa a ser el color de
+    // Metodo 2 = restaurar el fondo: lo transparente pasa a ser el color de
     // fondo en vez de dejar ver el cuadro anterior.
-    if (pDraw->ucDisposalMethod == 2) {
+    //
+    // Hay que comprobar que el cuadro TENGA transparencia. Sin ella el indice
+    // transparente vale cero, que es un color normal y muy usado, y se
+    // terminaban pintando del color de fondo pixeles legitimos: puntitos
+    // blancos sueltos, porque estos GIF declaran un fondo casi blanco.
+    if (pDraw->ucDisposalMethod == 2 && pDraw->ucHasTransparency) {
         for (int x = 0; x < pDraw->iWidth; ++x) {
             if (origen[x] == pDraw->ucTransparent) origen[x] = pDraw->ucBackground;
         }
