@@ -1,148 +1,125 @@
-# Carátulas (Cardputer ADV)
+# Caratulas: animated GIF wallpapers for the M5Stack Cardputer ADV
 
-Fondos animados para el M5Stack Cardputer ADV. Lee los `.gif` de la microSD y
-los reproduce a pantalla completa, con la hora y la batería encima.
+*[Versión en español](LEEME.md)*
 
-Un solo firmware, todas las carátulas que quieras: se cambian dejando archivos
-en la tarjeta, sin recompilar ni volver a flashear.
+Plays animated GIFs from the microSD card full screen, with a clock and battery
+indicator on top. One firmware, as many wallpapers as you like: drop `.gif`
+files on the card, no rebuilding and no reflashing.
 
-## Cómo se usa
+**Built and tested on the Cardputer ADV**, which most firmware does not support
+yet. See [Hardware support](#hardware-support) below.
 
-1. En la microSD, crea una carpeta `/caratulas`.
-2. Deja ahí tus archivos `.gif`.
-3. Enciende el Cardputer.
+## Install
 
-Para agregar carátulas después **no hay que recompilar ni reflashear nada**:
-copias más `.gif` a esa carpeta y aprietas `R`. Ni siquiera hace falta sacar la
-tarjeta, porque la WebUI del Launcher deja subir archivos por WiFi.
+The easy way, which keeps your Launcher: grab `caratulas-app.bin` from
+[Releases](../../releases) and install it from
+[M5Launcher](https://github.com/bmorcelli/M5Stick-Launcher) via **OTA** (from a
+GitHub link, from the SD card, or over Wi-Fi with its WebUI).
 
-## Instalarlo sin perder el Launcher
+Over USB instead, which **replaces whatever is on the board, Launcher
+included**:
 
-Instálalo **desde el menú del Launcher**, nunca por cable. El Launcher
-reconstruye la tabla de particiones al instalar y se queda: al encender arranca
-Carátulas, y si aprietas una tecla entras al Launcher.
+```bash
+esptool.py --chip esp32s3 --port /dev/ttyACM0 --no-stub \
+  write_flash 0x0 caratulas-complete.bin
+```
 
-Flashear por cable a 0x0 sí borra todo lo que haya, incluido el Launcher.
+`--no-stub` is not optional. The S3's USB-JTAG drops while esptool uploads its
+stub once your own firmware is running: it connects, identifies the chip, then
+dies with "No serial data received".
 
-| Tecla | Qué hace |
+## Use
+
+1. Create a `/caratulas` folder on the microSD.
+2. Drop `.gif` files in it.
+3. Power on.
+
+| Key | Action |
 |---|---|
-| `,` | carátula anterior |
-| `/` | carátula siguiente |
-| `O` | mostrar u ocultar el reloj |
-| `-` y `=` | bajar y subir el brillo |
-| `R` | releer la tarjeta, por si agregaste archivos |
+| `,` | previous wallpaper |
+| `/` | next wallpaper |
+| `O` | show or hide the clock |
+| `-` and `=` | brightness down and up |
+| `R` | re-read the card, after adding files |
 
-Lo que elijas se guarda: al prender vuelve a la última carátula, con el mismo
-brillo y el reloj como lo dejaste.
+Your choice is remembered: it comes back to the last wallpaper, same
+brightness, clock as you left it.
 
-## Sobre los GIF
+The card must be **SDHC, 32 GB or smaller, formatted FAT32**. SDXC will not
+mount.
 
-No hace falta que midan 240 x 135. El reproductor **centra la imagen y, si no
-cabe, la reduce por un divisor entero**: a la mitad, a un tercio, y así. Un GIF
-de 500 x 311 se ve a 167 x 104 centrado. No agranda nunca.
+## Preparing GIFs
 
-**Pero conviene convertirlos antes**, y no por el tamaño en pantalla sino por
-el trabajo de decodificar. El firmware reduce al dibujar, pero el ESP32 igual
-tiene que decodificar el cuadro completo primero. Un GIF de 640 x 360 son
-230.000 píxeles por cuadro para mostrar 32.000: eso corre a uno o dos cuadros
-por segundo. Para eso está la herramienta:
+Any size works. The player centers the image and, when it does not fit, shrinks
+it by a whole-number divisor. It never scales up.
 
-```bash
-# un archivo
-~/.venvs/imagen/bin/python herramientas/ajustar.py entrada.gif salida.gif
-
-# o una carpeta entera, directo a la tarjeta
-~/.venvs/imagen/bin/python herramientas/ajustar.py ~/gifs /Volumes/CARDPUTER/caratulas
-```
-
-Recorta al centro a 16:9 y reduce a 240 x 135. Con `--caber` encaja la imagen
-entera dejando barras negras, para cuando recortar se comería algo importante.
-Escribe cada cuadro completo en vez de solo las diferencias: el archivo queda
-algo más grande, pero el equipo no depende del cuadro anterior para dibujar.
-
-Necesita Pillow, que vive en `~/.venvs/imagen`.
-
-La tarjeta tiene que ser **SDHC de 32 GB o menos, formateada en FAT32**. Las
-SDXC no las lee.
-
-## El reloj
-
-El Cardputer ADV no tiene RTC, así que la hora llega por NTP al prender. Copia
-`src/secretos.ejemplo.h` a `src/secretos.h` y pon tu red; ese archivo está en
-`.gitignore`. Sin red configurada todo funciona igual, pero sin hora.
-
-La radio se apaga apenas sincroniza, así que no gasta batería durante el resto
-del rato.
-
-## Instalarlo
-
-Desde el **Launcher**, que es lo cómodo: en OTA puedes instalarlo desde un
-enlace de GitHub, desde la microSD o por WiFi con su WebUI. Usa el archivo
-`caratulas-cardputer-adv-app.bin` de los releases.
-
-Por cable, si prefieres:
+**But converting first makes a big difference**, and not because of the size on
+screen. The player shrinks while drawing, but the ESP32 still has to decode the
+full frame first. A 640x360 GIF is 230,000 pixels decoded per frame to show
+32,000 of them: that runs at one or two frames per second. Converted, it is
+smooth.
 
 ```bash
-esptool.py --chip esp32s3 --port /dev/cu.usbmodemXXXX --no-stub \
-  write_flash 0x0 caratulas-cardputer-adv-completo.bin
+python3 -m pip install pillow
+
+# one file
+python3 herramientas/ajustar.py input.gif output.gif
+
+# or a whole folder, straight onto the card
+python3 herramientas/ajustar.py ~/gifs /Volumes/CARDPUTER/caratulas
 ```
 
-Ojo: por cable reemplaza lo que haya en la placa, incluido el Launcher.
+It center-crops to 16:9 and resizes to 240x135. Pass `--caber` to fit the whole
+image with black bars instead, which is what you want when cropping would eat
+something that matters.
 
-El `--no-stub` no es opcional: el USB-JTAG del S3 se cae al cargar el stub de
-esptool cuando ya hay firmware corriendo.
+## Hardware support
 
-## Compilar
+Tested on the **Cardputer ADV**. It should work on the original Cardputer too,
+since the display, the SD pins and the M5Cardputer keyboard library are shared,
+**but that is untested**. Reports welcome.
+
+## Two things that cost time to find
+
+Both are documented here because they are not obvious and may save someone else
+the trouble.
+
+**The microSD does not mount on the ADV with a plain `SD.begin()`.** The extra
+I2C chips on the ADV interfere with the SPI chip select. GPIO 3, 4, 5, 6, 13
+and 15 have to be driven HIGH before touching the bus. Credit to the M5Launcher
+notes, which worked this out on the same board. Pins are CS=12, SCK=40,
+MISO=39, MOSI=14.
+
+**AnimatedGIF has to be initialised with `GIF_PALETTE_RGB565_BE`, not `_LE`.**
+M5GFX reads the `uint16_t` values handed to `pushImage` as byte-swapped RGB565,
+which is how images are stored. With `_LE` the drawing is correct but the
+channels are crossed: yellow comes out magenta.
+
+**The clock is drawn on the display, not on the canvas.** GIF frames are drawn
+on top of previous ones, so a clock painted into the canvas would smear across
+the animation.
+
+## Clock
+
+The Cardputer ADV has no RTC, so the time comes from NTP at boot. Copy
+`src/secretos.ejemplo.h` to `src/secretos.h` and fill in your network; that file
+is gitignored. Without it everything still works, just without the clock. The
+radio is switched off as soon as it syncs.
+
+## Build
 
 ```bash
-~/.venvs/platformio/bin/pio run -e cardputer-adv
-~/.venvs/platformio/bin/pio test -e pruebas
+pio run -e cardputer-adv     # firmware
+pio test -e pruebas          # the playlist logic, runs on your computer
 ```
 
-## Qué hay en la carpeta
+The playlist lives in `lib/nucleo/`, free of Arduino, so it can be tested on a
+desktop. Everything hardware is confined to `src/`.
 
-```
-lib/nucleo/
-  Lista.h / Lista.cpp        qué carátulas hay y cuál se ve, sin Arduino
-src/
-  main.cpp                   arranque, teclado y bucle
-  Tarjeta.h / .cpp           montar la microSD y listar los .gif
-  Reproductor.h / .cpp       el GIF sobre el lienzo, centrado y reducido
-  Capa.h / .cpp              el reloj y la batería encima
-  Reloj.h / .cpp             hora por NTP
-  secretos.ejemplo.h         plantilla para los datos de tu red
-test/test_nucleo/
-  test_lista.cpp             pruebas de la lista, corren en el Mac
-herramientas/
-  ajustar.py                 cualquier GIF a 240 x 135, para que corra fluido
-```
+## Credits
 
-## Dos cosas que costaron encontrarse
+Uses [AnimatedGIF](https://github.com/bitbank2/AnimatedGIF) by Larry Bank and
+[M5Unified](https://github.com/m5stack/M5Unified) / M5Cardputer by M5Stack.
 
-**La microSD no monta en el ADV con un `SD.begin()` normal.** Los chips I2C que
-trae el ADV ensucian el chip select del SPI. Hay que dejar los GPIO 3, 4, 5, 6,
-13 y 15 en alto antes de hablarle al bus. Sale de las notas del Launcher, que lo
-probó en esta misma placa. Los pines son CS=12, SCK=40, MISO=39, MOSI=14.
-
-**El reloj se dibuja sobre la pantalla, no sobre el lienzo.** Los cuadros de un
-GIF se dibujan encima de los anteriores, así que si la hora se pintara en el
-lienzo se iría quedando pegada, cuadro sobre cuadro.
-
-## Qué está probado
-
-En el Mac:
-
-- Compila sin errores: 49 KB de RAM estática, 596 KB de flash.
-- Las 8 pruebas de `test_lista.cpp` pasan: reconoce `.gif` sin importar
-  mayúsculas, descarta la basura que deja macOS en las tarjetas (`._algo`),
-  da la vuelta al pasar de una a otra, aguanta la lista vacía sin caerse,
-  ordena alfabéticamente y recupera la última vista aunque ya no exista.
-
-Todavía no verificado, hace falta el equipo con una tarjeta puesta:
-
-- Que la microSD monte de verdad con el remedio de los GPIO.
-- **La reproducción del GIF entera**, que es la parte con más riesgo: el
-  centrado, la reducción por divisor entero y el manejo de transparencia entre
-  cuadros.
-- Que el lienzo de 65 KB y los buffers de AnimatedGIF convivan sin quedarse
-  sin memoria.
+MIT licensed. The wallpapers you put on your own card are yours to deal with:
+none ship with this repository.
