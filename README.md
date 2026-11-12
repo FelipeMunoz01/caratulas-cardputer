@@ -12,6 +12,18 @@ en la tarjeta, sin recompilar ni volver a flashear.
 2. Deja ahí tus archivos `.gif`.
 3. Enciende el Cardputer.
 
+Para agregar carátulas después **no hay que recompilar ni reflashear nada**:
+copias más `.gif` a esa carpeta y aprietas `R`. Ni siquiera hace falta sacar la
+tarjeta, porque la WebUI del Launcher deja subir archivos por WiFi.
+
+## Instalarlo sin perder el Launcher
+
+Instálalo **desde el menú del Launcher**, nunca por cable. El Launcher
+reconstruye la tabla de particiones al instalar y se queda: al encender arranca
+Carátulas, y si aprietas una tecla entras al Launcher.
+
+Flashear por cable a 0x0 sí borra todo lo que haya, incluido el Launcher.
+
 | Tecla | Qué hace |
 |---|---|
 | `,` | carátula anterior |
@@ -36,7 +48,11 @@ tiene que decodificar el cuadro completo primero. Un GIF de 640 x 360 son
 por segundo. Para eso está la herramienta:
 
 ```bash
+# un archivo
 ~/.venvs/imagen/bin/python herramientas/ajustar.py entrada.gif salida.gif
+
+# o una carpeta entera, directo a la tarjeta
+~/.venvs/imagen/bin/python herramientas/ajustar.py ~/gifs /Volumes/CARDPUTER/caratulas
 ```
 
 Recorta al centro a 16:9 y reduce a 240 x 135. Con `--caber` encaja la imagen

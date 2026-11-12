@@ -7,6 +7,11 @@ GIF de 640x360 son 230.000 píxeles por cuadro para mostrar 32.000. Convertirlo
 antes divide el trabajo por nueve y de paso achica el archivo muchísimo.
 
     python3 herramientas/ajustar.py entrada.gif salida.gif [--caber]
+    python3 herramientas/ajustar.py carpeta/ /Volumes/CARDPUTER/caratulas
+
+Acepta un archivo o una carpeta entera. Con una carpeta convierte todos los
+.gif que encuentre y los deja en el destino, así agregar carátulas nuevas es
+un solo comando.
 
 Por defecto **recorta** al centro para llenar la pantalla. Con `--caber` encaja
 la imagen entera y deja barras negras, que sirve cuando recortar se comería
@@ -81,7 +86,32 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if len(args) != 2:
         raise SystemExit(__doc__)
-    convertir(args[0], args[1], recortar="--caber" not in sys.argv)
+
+    recortar = "--caber" not in sys.argv
+    origen = pathlib.Path(args[0])
+    destino = pathlib.Path(args[1])
+
+    if origen.is_file():
+        convertir(origen, destino, recortar)
+        return
+
+    if not origen.is_dir():
+        raise SystemExit(f"{origen}: no existe")
+
+    destino.mkdir(parents=True, exist_ok=True)
+    gifs = sorted(p for p in origen.iterdir()
+                  if p.suffix.lower() == ".gif" and not p.name.startswith("."))
+    if not gifs:
+        raise SystemExit(f"{origen}: no hay ningún .gif")
+
+    total = 0
+    for gif in gifs:
+        salida = destino / gif.name
+        try:
+            total += convertir(gif, salida, recortar)
+        except Exception as e:                      # un GIF roto no para el resto
+            print(f"  {gif.name}: se saltó, {e}")
+    print(f"\n{len(gifs)} archivos, {total // 1024} KB en total")
 
 
 if __name__ == "__main__":
