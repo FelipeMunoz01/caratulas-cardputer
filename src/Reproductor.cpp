@@ -101,7 +101,11 @@ void dibujarLinea(GIFDRAW* pDraw) {
 
 void Reproductor::inicializar(M5Canvas* destino) {
     lienzo = destino;
-    gif.begin(GIF_PALETTE_RGB565_LE);
+    // BE y no LE: M5GFX interpreta los uint16_t de pushImage como RGB565 con
+    // los bytes al reves, que es el formato en que viven las imagenes. Con LE
+    // el dibujo sale bien pero los canales se cruzan, y el amarillo de Pikachu
+    // se ve magenta. Comprobado en el equipo.
+    gif.begin(GIF_PALETTE_RGB565_BE);
 }
 
 bool Reproductor::abrir(const char* ruta) {
