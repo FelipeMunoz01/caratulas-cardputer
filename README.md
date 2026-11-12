@@ -46,9 +46,10 @@ dies with "No serial data received".
 Your choice is remembered: it comes back to the last wallpaper, same
 brightness, clock as you left it.
 
-`ESC` restarts the device, which is what the RST button does: the Launcher runs
-first and hands control over only if you do not press anything, so hold a key
-while it boots to stay in the Launcher.
+`ESC` restarts the device, which is what the RST button does. **Press ENTER on
+the Launcher boot screen** to get into the Launcher: any other key triggers its
+fastboot and jumps straight back here. The Launcher's CFG menu also has an
+option to always boot into the Launcher.
 
 The card must be **SDHC, 32 GB or smaller, formatted FAT32**. SDXC will not
 mount.

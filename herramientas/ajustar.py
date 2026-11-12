@@ -17,6 +17,11 @@ Por defecto **recorta** al centro para llenar la pantalla. Con `--caber` encaja
 la imagen entera y deja barras negras, que sirve cuando recortar se comería
 algo importante.
 
+Con `--sprite` trata la imagen como una animación sobre fondo plano, de esas
+con croma verde o un color liso: detecta ese fondo, lo pinta de negro, y
+recorta a donde de verdad pasa algo. Sin eso quedan personajes diminutos en una
+esquina de un rectángulo de color.
+
 Necesita Pillow:  ~/.venvs/imagen/bin/python
 """
 
@@ -52,17 +57,91 @@ def ajustar_cuadro(cuadro, recortar):
     return lienzo
 
 
-def convertir(origen, destino, recortar=True):
+def color_de_fondo(cuadros):
+    """El color que más se repite en las cuatro esquinas de todos los cuadros."""
+    conteo = {}
+    for im in cuadros:
+        a, al = im.size
+        for x, y in ((0, 0), (a - 1, 0), (0, al - 1), (a - 1, al - 1)):
+            c = im.getpixel((x, y))
+            conteo[c] = conteo.get(c, 0) + 1
+    return max(conteo, key=conteo.get) if conteo else (0, 0, 0)
+
+
+def caja_del_contenido(cuadros, fondo, tolerancia=40):
+    """Lo que ocupa la acción en TODOS los cuadros juntos.
+
+    Tiene que ser una sola caja para toda la animación: si cada cuadro se
+    recortara a su medida, el personaje saltaría de posición.
+    """
+    a, al = cuadros[0].size
+    x0, y0, x1, y1 = a, al, -1, -1
+    for im in cuadros:
+        px = im.load()
+        for y in range(al):
+            for x in range(a):
+                r, g, b = px[x, y][:3]
+                if (abs(r - fondo[0]) + abs(g - fondo[1]) + abs(b - fondo[2])) > tolerancia:
+                    if x < x0: x0 = x
+                    if x > x1: x1 = x
+                    if y < y0: y0 = y
+                    if y > y1: y1 = y
+    if x1 < 0:
+        return 0, 0, a - 1, al - 1
+    return x0, y0, x1, y1
+
+
+def preparar_sprite(cuadros):
+    """Fondo plano a negro y recorte a donde pasa algo."""
+    fondo = color_de_fondo(cuadros)
+    x0, y0, x1, y1 = caja_del_contenido(cuadros, fondo)
+
+    # La caja se estira a 16:9 alrededor de su centro, para no deformar nada.
+    ancho, alto = x1 - x0 + 1, y1 - y0 + 1
+    objetivo = ANCHO / ALTO
+    if ancho / alto < objetivo:
+        nuevo = int(round(alto * objetivo))
+        x0 -= (nuevo - ancho) // 2
+        x1 = x0 + nuevo - 1
+    else:
+        nuevo = int(round(ancho / objetivo))
+        y0 -= (nuevo - alto) // 2
+        y1 = y0 + nuevo - 1
+
+    salida = []
+    for im in cuadros:
+        negro = Image.new("RGB", im.size, (0, 0, 0))
+        px, pn = im.load(), negro.load()
+        a, al = im.size
+        for y in range(al):
+            for x in range(a):
+                r, g, b = px[x, y][:3]
+                if (abs(r - fondo[0]) + abs(g - fondo[1]) + abs(b - fondo[2])) > 40:
+                    pn[x, y] = (r, g, b)
+        recorte = negro.crop((x0, y0, x1 + 1, y1 + 1))
+        lienzo = Image.new("RGB", (ANCHO, ALTO), (0, 0, 0))
+        copia = recorte.resize((ANCHO, ALTO), Image.LANCZOS)
+        lienzo.paste(copia, (0, 0))
+        salida.append(lienzo)
+    print(f"      fondo detectado {fondo}, recortado a {x1-x0+1}x{y1-y0+1}")
+    return salida
+
+
+def convertir(origen, destino, recortar=True, sprite=False):
     im = Image.open(origen)
     cuadros, duraciones = [], []
     for cuadro in ImageSequence.Iterator(im):
-        cuadros.append(ajustar_cuadro(cuadro, recortar))
+        cuadros.append(cuadro.convert("RGB") if sprite
+                       else ajustar_cuadro(cuadro, recortar))
         # Un GIF sin duración declarada se reproduce a unos 10 cuadros por
         # segundo, que es lo que hacen los navegadores.
         duraciones.append(cuadro.info.get("duration", 100) or 100)
 
     if not cuadros:
         raise SystemExit(f"{origen}: no tiene ningún cuadro")
+
+    if sprite:
+        cuadros = preparar_sprite(cuadros)
 
     cuadros[0].save(
         destino,
@@ -88,11 +167,12 @@ def main():
         raise SystemExit(__doc__)
 
     recortar = "--caber" not in sys.argv
+    sprite = "--sprite" in sys.argv
     origen = pathlib.Path(args[0])
     destino = pathlib.Path(args[1])
 
     if origen.is_file():
-        convertir(origen, destino, recortar)
+        convertir(origen, destino, recortar, sprite)
         return
 
     if not origen.is_dir():
@@ -108,7 +188,7 @@ def main():
     for gif in gifs:
         salida = destino / gif.name
         try:
-            total += convertir(gif, salida, recortar)
+            total += convertir(gif, salida, recortar, sprite)
         except Exception as e:                      # un GIF roto no para el resto
             print(f"  {gif.name}: se saltó, {e}")
     print(f"\n{len(gifs)} archivos, {total // 1024} KB en total")

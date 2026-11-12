@@ -74,9 +74,11 @@ void releerTarjeta() {
     abrirActual();
 }
 
-// Vuelve al Launcher. El Launcher arranca primero y le cede el control a la
-// aplicacion instalada si no se aprieta nada, asi que reiniciar es exactamente
-// lo que hace el boton RST, pero desde el teclado.
+// Vuelve al Launcher reiniciando, que es lo mismo que hace el boton RST.
+//
+// En la pantalla de arranque del Launcher hay que apretar ENTER. Cualquier otra
+// tecla hace lo contrario: su "fastboot" para equipos con teclado salta directo
+// a la aplicacion instalada.
 void volverAlLauncher() {
     guardarAjustes();
 
@@ -84,10 +86,11 @@ void volverAlLauncher() {
     p.fillScreen(p.color565(14, 16, 22));
     p.setFont(&fonts::Font2);
     p.setTextColor(p.color565(235, 238, 242));
-    p.drawString("Volviendo al Launcher...", 10, 50);
+    p.drawString("Volviendo al Launcher...", 10, 44);
     p.setTextColor(p.color565(150, 160, 175));
-    p.drawString("manten una tecla apretada", 10, 76);
-    delay(900);
+    p.drawString("aprieta ENTER al arrancar", 10, 72);
+    p.drawString("otra tecla entra aca de nuevo", 10, 92);
+    delay(1400);
 
     ESP.restart();
 }

@@ -38,9 +38,10 @@ Flashear por cable a 0x0 sí borra todo lo que haya, incluido el Launcher.
 Lo que elijas se guarda: al prender vuelve a la última carátula, con el mismo
 brillo y el reloj como lo dejaste.
 
-`ESC` reinicia el equipo, que es lo mismo que hace el botón RST: el Launcher
-arranca primero y le cede el control solo si no aprietas nada, así que mantén
-una tecla apretada mientras arranca para quedarte en el Launcher.
+`ESC` reinicia el equipo, que es lo mismo que hace el botón RST. En la pantalla
+de arranque del Launcher hay que apretar **ENTER**: cualquier otra tecla dispara
+su fastboot y salta de vuelta acá. El menú CFG del Launcher además tiene una
+opción para arrancar siempre en el Launcher.
 
 La tecla `esc` del Cardputer no llega al programa como un código propio sino
 como el caracter de acento grave. Por eso también responde Backspace, que es la
