@@ -1,11 +1,14 @@
 #include "Reloj.h"
 
 #include <Arduino.h>
-#include <WiFi.h>
-#include <time.h>
 
+// Sin secretos.h no se incluye nada de WiFi, y eso importa: la pila de red
+// pesa 407 KB, mas que todo el resto del programa junto. El reloj es opcional
+// justamente por eso.
 #if __has_include("secretos.h")
 #include "secretos.h"
+#include <WiFi.h>
+#include <time.h>
 #define CARATULAS_TIENE_SECRETOS 1
 #endif
 
@@ -49,11 +52,17 @@ bool horaConocida() { return sincronizado; }
 
 bool horaTexto(char* destino, size_t tam) {
     if (!sincronizado) return false;
+#ifdef CARATULAS_TIENE_SECRETOS
     const time_t ahora = time(nullptr);
     struct tm local;
     localtime_r(&ahora, &local);
     strftime(destino, tam, "%H:%M", &local);
     return true;
+#else
+    (void)destino;
+    (void)tam;
+    return false;
+#endif
 }
 
 }  // namespace reloj

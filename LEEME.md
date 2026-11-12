@@ -30,7 +30,7 @@ Flashear por cable a 0x0 sí borra todo lo que haya, incluido el Launcher.
 |---|---|
 | `,` | carátula anterior |
 | `/` | carátula siguiente |
-| `O` | mostrar u ocultar el reloj |
+| `O` | mostrar u ocultar los datos de encima |
 | `-` y `=` | bajar y subir el brillo |
 | `R` | releer la tarjeta, por si agregaste archivos |
 | `ESC` o Backspace | volver al Launcher |
@@ -76,14 +76,18 @@ Necesita Pillow: `python3 -m pip install pillow`.
 La tarjeta tiene que ser **SDHC de 32 GB o menos, formateada en FAT32**. Las
 SDXC no las lee.
 
-## El reloj
+## El reloj (opcional, apagado por defecto)
 
-El Cardputer ADV no tiene RTC, así que la hora llega por NTP al prender. Copia
-`src/secretos.ejemplo.h` a `src/secretos.h` y pon tu red; ese archivo está en
-`.gitignore`. Sin red configurada todo funciona igual, pero sin hora.
+De fábrica solo se muestra el nivel de batería. El Cardputer ADV no tiene RTC,
+así que la hora tendría que venir por NTP, y **arrastrar toda la pila de WiFi
+cuesta unos 400 KB**, casi el doble del programa completo. Por eso el reloj hay
+que pedirlo.
 
-La radio se apaga apenas sincroniza, así que no gasta batería durante el resto
-del rato.
+Para activarlo, copia `src/secretos.ejemplo.h` a `src/secretos.h` y pon tu red;
+ese archivo está en `.gitignore`. Sin él no se compila nada de WiFi.
+
+La radio se apaga apenas sincroniza, así que solo gasta batería una vez al
+arrancar.
 
 ## Instalarlo
 

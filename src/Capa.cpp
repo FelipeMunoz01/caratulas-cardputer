@@ -8,11 +8,6 @@
 namespace capa {
 namespace {
 
-constexpr uint32_t kAnuncioMs = 2500;
-
-char     anuncio[40] = {0};
-uint32_t anuncioHastaMs = 0;
-
 // Texto con sombra, para que se lea sobre cualquier imagen.
 void conSombra(int x, int y, const char* texto, uint32_t color) {
     auto& p = M5Cardputer.Display;
@@ -24,40 +19,24 @@ void conSombra(int x, int y, const char* texto, uint32_t color) {
 
 }  // namespace
 
-void anunciar(const char* nombre) {
-    snprintf(anuncio, sizeof(anuncio), "%s", nombre);
-    anuncioHastaMs = millis() + kAnuncioMs;
-}
-
 void dibujar(bool mostrarReloj) {
     auto& p = M5Cardputer.Display;
 
-    if (mostrarReloj) {
-        char hora[8];
-        if (reloj::horaTexto(hora, sizeof(hora))) {
-            p.setFont(&fonts::Font7);
-            p.setTextSize(1);
-            conSombra(8, p.height() - 58, hora, p.color565(255, 255, 255));
-        }
+    if (!mostrarReloj) return;
 
-        p.setFont(&fonts::Font2);
-        p.setTextSize(1);
-        char bat[8];
-        snprintf(bat, sizeof(bat), "%d%%", M5Cardputer.Power.getBatteryLevel());
-        const int ancho = p.textWidth(bat);
-        conSombra(p.width() - ancho - 8, 6, bat, p.color565(230, 235, 240));
-    }
+    p.setFont(&fonts::Font2);
+    p.setTextSize(1);
 
-    if (anuncio[0] != '\0') {
-        if (millis() < anuncioHastaMs) {
-            p.setFont(&fonts::Font2);
-            p.setTextSize(1);
-            const int ancho = p.textWidth(anuncio);
-            conSombra(p.width() - ancho - 8, p.height() - 24, anuncio,
-                      p.color565(230, 235, 240));
-        } else {
-            anuncio[0] = '\0';
-        }
+    // Bateria arriba a la derecha.
+    char bat[8];
+    snprintf(bat, sizeof(bat), "%d%%", M5Cardputer.Power.getBatteryLevel());
+    conSombra(p.width() - p.textWidth(bat) - 8, 6, bat, p.color565(230, 235, 240));
+
+    // Hora abajo a la derecha, del mismo porte que la bateria.
+    char hora[8];
+    if (reloj::horaTexto(hora, sizeof(hora))) {
+        conSombra(p.width() - p.textWidth(hora) - 8, p.height() - 24, hora,
+                  p.color565(255, 255, 255));
     }
 }
 

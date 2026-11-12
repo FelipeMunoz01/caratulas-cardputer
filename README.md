@@ -38,7 +38,7 @@ dies with "No serial data received".
 |---|---|
 | `,` | previous wallpaper |
 | `/` | next wallpaper |
-| `O` | show or hide the clock |
+| `O` | show or hide the overlay |
 | `-` and `=` | brightness down and up |
 | `R` | re-read the card, after adding files |
 | `ESC` or Backspace | back to the Launcher |
@@ -104,12 +104,16 @@ channels are crossed: yellow comes out magenta.
 on top of previous ones, so a clock painted into the canvas would smear across
 the animation.
 
-## Clock
+## Clock (optional, off by default)
 
-The Cardputer ADV has no RTC, so the time comes from NTP at boot. Copy
-`src/secretos.ejemplo.h` to `src/secretos.h` and fill in your network; that file
-is gitignored. Without it everything still works, just without the clock. The
-radio is switched off as soon as it syncs.
+Only the battery level is shown unless you enable the clock. The Cardputer ADV
+has no RTC, so the time has to come from NTP, and **pulling in the Wi-Fi stack
+costs about 400 KB**, nearly doubling the firmware. That is why it is opt-in.
+
+To enable it, copy `src/secretos.ejemplo.h` to `src/secretos.h` and fill in your
+network; that file is gitignored. Without it, no Wi-Fi code is compiled at all.
+The radio is switched off as soon as it syncs, so it only costs battery once at
+boot.
 
 ## Build
 

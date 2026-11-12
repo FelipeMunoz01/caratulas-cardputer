@@ -55,9 +55,7 @@ void abrirActual() {
 
     char ruta[160];
     snprintf(ruta, sizeof(ruta), "%s/%s", kCarpeta, lista.actual().c_str());
-    if (reproductor.abrir(ruta)) {
-        capa::anunciar(lista.actual().c_str());
-    }
+    reproductor.abrir(ruta);
     proximoCuadroMs = millis();
 }
 
