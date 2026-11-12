@@ -27,11 +27,24 @@ brillo y el reloj como lo dejaste.
 
 No hace falta que midan 240 x 135. El reproductor **centra la imagen y, si no
 cabe, la reduce por un divisor entero**: a la mitad, a un tercio, y así. Un GIF
-de 500 x 311 se ve a 167 x 104 centrado.
+de 500 x 311 se ve a 167 x 104 centrado. No agranda nunca.
 
-No agranda nunca. Un GIF chico se ve chico y nítido, que es mejor que verlo
-estirado y borroso. Para que ocupe toda la pantalla, el GIF tiene que medir
-240 x 135, o un múltiplo exacto como 480 x 270.
+**Pero conviene convertirlos antes**, y no por el tamaño en pantalla sino por
+el trabajo de decodificar. El firmware reduce al dibujar, pero el ESP32 igual
+tiene que decodificar el cuadro completo primero. Un GIF de 640 x 360 son
+230.000 píxeles por cuadro para mostrar 32.000: eso corre a uno o dos cuadros
+por segundo. Para eso está la herramienta:
+
+```bash
+~/.venvs/imagen/bin/python herramientas/ajustar.py entrada.gif salida.gif
+```
+
+Recorta al centro a 16:9 y reduce a 240 x 135. Con `--caber` encaja la imagen
+entera dejando barras negras, para cuando recortar se comería algo importante.
+Escribe cada cuadro completo en vez de solo las diferencias: el archivo queda
+algo más grande, pero el equipo no depende del cuadro anterior para dibujar.
+
+Necesita Pillow, que vive en `~/.venvs/imagen`.
 
 La tarjeta tiene que ser **SDHC de 32 GB o menos, formateada en FAT32**. Las
 SDXC no las lee.
@@ -84,6 +97,8 @@ src/
   secretos.ejemplo.h         plantilla para los datos de tu red
 test/test_nucleo/
   test_lista.cpp             pruebas de la lista, corren en el Mac
+herramientas/
+  ajustar.py                 cualquier GIF a 240 x 135, para que corra fluido
 ```
 
 ## Dos cosas que costaron encontrarse
