@@ -76,6 +76,24 @@ void releerTarjeta() {
     abrirActual();
 }
 
+// Vuelve al Launcher. El Launcher arranca primero y le cede el control a la
+// aplicacion instalada si no se aprieta nada, asi que reiniciar es exactamente
+// lo que hace el boton RST, pero desde el teclado.
+void volverAlLauncher() {
+    guardarAjustes();
+
+    auto& p = M5Cardputer.Display;
+    p.fillScreen(p.color565(14, 16, 22));
+    p.setFont(&fonts::Font2);
+    p.setTextColor(p.color565(235, 238, 242));
+    p.drawString("Volviendo al Launcher...", 10, 50);
+    p.setTextColor(p.color565(150, 160, 175));
+    p.drawString("manten una tecla apretada", 10, 76);
+    delay(900);
+
+    ESP.restart();
+}
+
 // Mensaje en pantalla cuando no hay nada que mostrar, para que no quede negra
 // sin explicacion.
 void pantallaDeAyuda(const char* motivo) {
@@ -95,7 +113,16 @@ void atenderTeclado() {
     if (!M5Cardputer.Keyboard.isChange()) return;
     if (!M5Cardputer.Keyboard.isPressed()) return;
 
-    for (const char c : M5Cardputer.Keyboard.keysState().word) {
+    const auto estado = M5Cardputer.Keyboard.keysState();
+
+    // Backspace tambien sale, porque es la otra tecla que el Launcher usa como
+    // "volver" y es la que la gente prueba.
+    if (estado.del) {
+        volverAlLauncher();
+        return;
+    }
+
+    for (const char c : estado.word) {
         switch (c) {
             case ',': cambiar(false); return;
             case '/': cambiar(true);  return;
@@ -115,6 +142,9 @@ void atenderTeclado() {
                 guardarAjustes();
                 return;
             case 'r': releerTarjeta(); return;
+            // La tecla esc del Cardputer no llega como un codigo aparte: llega
+            // como el caracter de acento grave.
+            case '`': volverAlLauncher(); return;
             default: break;
         }
     }

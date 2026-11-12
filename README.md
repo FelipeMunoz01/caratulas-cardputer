@@ -41,9 +41,14 @@ dies with "No serial data received".
 | `O` | show or hide the clock |
 | `-` and `=` | brightness down and up |
 | `R` | re-read the card, after adding files |
+| `ESC` or Backspace | back to the Launcher |
 
 Your choice is remembered: it comes back to the last wallpaper, same
 brightness, clock as you left it.
+
+`ESC` restarts the device, which is what the RST button does: the Launcher runs
+first and hands control over only if you do not press anything, so hold a key
+while it boots to stay in the Launcher.
 
 The card must be **SDHC, 32 GB or smaller, formatted FAT32**. SDXC will not
 mount.

@@ -33,9 +33,18 @@ Flashear por cable a 0x0 sí borra todo lo que haya, incluido el Launcher.
 | `O` | mostrar u ocultar el reloj |
 | `-` y `=` | bajar y subir el brillo |
 | `R` | releer la tarjeta, por si agregaste archivos |
+| `ESC` o Backspace | volver al Launcher |
 
 Lo que elijas se guarda: al prender vuelve a la última carátula, con el mismo
 brillo y el reloj como lo dejaste.
+
+`ESC` reinicia el equipo, que es lo mismo que hace el botón RST: el Launcher
+arranca primero y le cede el control solo si no aprietas nada, así que mantén
+una tecla apretada mientras arranca para quedarte en el Launcher.
+
+La tecla `esc` del Cardputer no llega al programa como un código propio sino
+como el caracter de acento grave. Por eso también responde Backspace, que es la
+otra tecla que el Launcher usa para volver.
 
 ## Sobre los GIF
 
